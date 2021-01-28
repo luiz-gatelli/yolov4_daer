@@ -1,2 +1,3 @@
-checkpoints
+checkpoints/yolov4-416/variables/variables.data-00000-of-00001
+checkpoints/yolov4-416/variables/variables.index
 data/yolov4.weights
