@@ -11,7 +11,7 @@ import sklearn as sk
 # Image general definitions
 HEIGHT = 1080
 WIDTH = 1920
-data_file = 'tracked_data.txt'
+data_file = 'tracked_data.json'
 data = pd.read_json(data_file, 'records').T
 
 data["x_initial"] = (data["initial position"].str[0] +
