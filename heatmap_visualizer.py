@@ -11,7 +11,7 @@ import sklearn as sk
 # Image general definitions
 HEIGHT = 1080
 WIDTH = 1920
-data_file = 'tracked_data.json'
+data_file = 'data_tresh03.txt'
 data = pd.read_json(data_file, 'records').T
 
 data["x_initial"] = (data["initial position"].str[0] +
@@ -52,13 +52,22 @@ window = sg.Window('Visualizer', layout, size=(
     WIDTH * 8 // 10, HEIGHT * 8 // 10))
 window.read()
 
+
+def plot_arrow(ax, data, color):
+    ax.scatter(data["x_initial"].values, data["y_initial"].values,
+               c='blue', marker='o', s=10, zorder=3)
+    ax.scatter(data["x_final"].values,
+               data["y_final"].values, c='red', marker='o', s=10, zorder=2)
+
+    ax.quiver(data["x_initial"].values, data["y_initial"].values, ((data["x_final"] - data["x_initial"]).values),
+              ((data["y_final"] - data["y_initial"]).values), angles="xy", scale_units="xy", scale=1, width=0.002, color=color)
+
+
 ax.scatter(data["x_initial"].values, data["y_initial"].values,
            c='blue', marker='o', s=10, zorder=3)
 ax.scatter(data["x_final"].values,
            data["y_final"].values, c='red', marker='o', s=10, zorder=2)
 
-ax.quiver(data["x_initial"].values, data["y_initial"].values, ((data["x_final"] - data["x_initial"]).values),
-          ((data["y_final"] - data["y_initial"]).values), angles="xy", scale_units="xy", scale=1, width=0.002)
 
 draw_figure(window['fig_canvas'].TKCanvas, fig)
 
@@ -67,15 +76,19 @@ while True:
     # elif values['car'] == True:
     if event == sg.WIN_CLOSED or event == "Exit":
         break
-
-    ax.scatter(data["x_initial"].values, data["y_initial"].values,
-               c='blue', marker='o', s=10, zorder=3)
-    ax.scatter(data["x_final"].values,
-               data["y_final"].values, c='red', marker='o', s=10, zorder=2)
+    ax.clear()
+    ax.axis('off')
+    if values['car'] == True:
+        plot_arrow(ax, data.loc[data['class'] == 'car'], 'black')
+    if values['motorcycle'] == True:
+        plot_arrow(ax, data.loc[data['class'] == 'motorcycle'], 'green')
+    if values['bus'] == True:
+        plot_arrow(ax, data.loc[data['class'] == 'bus'], 'orange')
+    if values['truck'] == True:
+        plot_arrow(ax, data.loc[data['class'] == 'truck'], 'purple')
 
     # ax.quiver([data["x_initial"].values, data["y_initial"].values], [
     #              data["x_final"].values, data["y_final"].values])
     draw_figure(window['fig_canvas'].TKCanvas, fig)
-
 
 window.close()
