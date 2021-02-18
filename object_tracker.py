@@ -259,7 +259,9 @@ def main(_argv):
             break
     cv2.destroyAllWindows()
 
-    with open("./tracked_data"+str(FLAGS.score*10//1)+".txt", 'w+') as tracked_file:
+    head, tail = os.path.split(FLAGS.video)
+
+    with open("./tracked_data" + head[:-4] + "_.txt", 'w+') as tracked_file:
         tracked_file.write(json.dumps(tracked_objects))
 
 

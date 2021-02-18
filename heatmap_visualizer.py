@@ -11,7 +11,8 @@ import sklearn as sk
 # Image general definitions
 HEIGHT = 1080
 WIDTH = 1920
-data_file = 'data_tresh03.txt'
+x, y = 0, 0
+data_file = 'tracked_data6.0.txt'
 data = pd.read_json(data_file, 'records').T
 
 data["x_initial"] = (data["initial position"].str[0] +
@@ -44,7 +45,7 @@ def draw_figure(canvas, fig):
 
 layout = [
     [sg.Checkbox("Car", default=False, key='car', enable_events=True), sg.Checkbox("Truck", default=False, key='truck', enable_events=True),
-     sg.Checkbox("Motorcycle", default=False, key='motorcycle', enable_events=True), sg.Checkbox("Bus", default=False, key='bus', enable_events=True)],
+     sg.Checkbox("Motorcycle", default=False, key='motorcycle', enable_events=True), sg.Checkbox("Bus", default=False, key='bus', enable_events=True), sg.Checkbox("Draw Region", key="draw_reg", enable_events=True)],
     [sg.Canvas(key='fig_canvas', size=(WIDTH*px, HEIGHT*px))]
 ]
 
@@ -70,9 +71,18 @@ ax.scatter(data["x_final"].values,
 
 
 draw_figure(window['fig_canvas'].TKCanvas, fig)
+ax.clear()
+ax.axis('off')
+
+
+initial_xy = ()
+final_xy = ()
 
 while True:
+    print(x, y)
     event, values = window.read()
+    # print(event)
+
     # elif values['car'] == True:
     if event == sg.WIN_CLOSED or event == "Exit":
         break
@@ -90,5 +100,12 @@ while True:
     # ax.quiver([data["x_initial"].values, data["y_initial"].values], [
     #              data["x_final"].values, data["y_final"].values])
     draw_figure(window['fig_canvas'].TKCanvas, fig)
+
+    def onclick(event):
+        print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+            ('double' if event.dblclick else 'single', event.button,
+            event.x, event.y, event.xdata, event.ydata))
+
+    fig.canvas.mpl_connect('button_press_event', onclick)
 
 window.close()
