@@ -262,7 +262,7 @@ def main(_argv):
     head, tail = os.path.split(os.path.splitext(video_path)[0])
 
 
-    with open("./tracked_data" + tail + "_.txt", 'w+') as tracked_file:
+    with open("./tracked_data+_" + tail + ".txt", 'w+') as tracked_file:
         tracked_file.write(json.dumps(tracked_objects))
 
 
