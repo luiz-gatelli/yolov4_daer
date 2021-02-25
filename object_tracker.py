@@ -40,7 +40,9 @@ flags.DEFINE_float('score', 0.50, 'score threshold')
 flags.DEFINE_boolean('dont_show', False, 'dont show video output')
 flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
-flags.DEFINE_integer('maxage',90,'frames before detection stops - deep sort parameter. default = 90')
+flags.DEFINE_integer(
+    'maxage', 90, 'frames before detection stops - deep sort parameter. default = 90')
+
 
 def main(_argv):
     # Definition of the parameters
@@ -58,7 +60,7 @@ def main(_argv):
     metric = nn_matching.NearestNeighborDistanceMetric(
         "cosine", max_cosine_distance, nn_budget)
     # initialize tracker
-    tracker = Tracker(metric,max_age=FLAGS.maxage)
+    tracker = Tracker(metric, max_age=FLAGS.maxage)
 
     # load configuration for object detector
     config = ConfigProto()
@@ -261,8 +263,7 @@ def main(_argv):
 
     head, tail = os.path.split(os.path.splitext(video_path)[0])
 
-
-    with open(f"./tracked_data+_{tail}_{FLAGS.maxage}.txt", 'w+') as tracked_file:
+    with open(f"./tracks/tracked_data_{tail}_{FLAGS.maxage}.txt", 'w+') as tracked_file:
         tracked_file.write(json.dumps(tracked_objects))
 
 
