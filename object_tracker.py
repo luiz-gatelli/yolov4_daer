@@ -46,11 +46,11 @@ flags.DEFINE_integer(
     'min_frames', 3, 'frames before track is validated - deep sort parameter. default = 3')
 
 
-def format_data(track, frame_num):
+def format_data(track_id, bbox, class_name, frame_num):
     formatted_data = ''
-    formatted_data += str(track.track_id) + ';'
-    formatted_data += str(track.to_tlbr()) + ';'
-    formatted_data += str(track.class_name) + ';'
+    formatted_data += str(track_id) + ';'
+    formatted_data += f"[{(int(bbox[0]))}, {int(bbox[1])}, {int(bbox[2])}, {int(bbox[3])}]"+ ';'
+    formatted_data += str(class_name) + ';'
     formatted_data += str(frame_num) + "\n"
     return formatted_data
 
@@ -235,7 +235,7 @@ def main(_argv):
             class_name = track.get_class()
 
         # Save CSV Data - TrackID , BBBOX Coordinates , Frame , Class
-            file.write(format_data(track, frame_num))
+            file.write(format_data(track.track_id,bbox,class_name, frame_num))
             file.flush()
 
         # draw bbox on screen
@@ -276,9 +276,6 @@ def main(_argv):
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-
-
- 
 
     cv2.destroyAllWindows()
 
