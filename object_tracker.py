@@ -42,8 +42,17 @@ flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 flags.DEFINE_integer(
     'maxage', 90, 'frames before detection stops - deep sort parameter. default = 90')
-flags.DEFINE_float(
+flags.DEFINE_integer(
     'min_frames', 3, 'frames before track is validated - deep sort parameter. default = 3')
+
+
+def format_data(track, frame_num):
+    formatted_data = ''
+    formatted_data += str(track.track_id) + ';'
+    formatted_data += str(track.to_tlbr()) + ';'
+    formatted_data += str(track.class_name) + ';'
+    formatted_data += str(frame_num) + "\n"
+    return formatted_data
 
 def main(_argv):
     # Definition of the parameters
@@ -59,7 +68,7 @@ def main(_argv):
     metric = nn_matching.NearestNeighborDistanceMetric(
         "cosine", max_cosine_distance, nn_budget)
     # initialize tracker
-    tracker = Tracker(metric, max_age=FLAGS.maxage , min=FLAGS.min_frames)
+    tracker = Tracker(metric, max_age=FLAGS.maxage , n_init =FLAGS.min_frames)
 
     # load configuration for object detector
     config = ConfigProto()
@@ -225,6 +234,10 @@ def main(_argv):
             bbox = track.to_tlbr()
             class_name = track.get_class()
 
+        # Save CSV Data - TrackID , BBBOX Coordinates , Frame , Class
+            file.write(format_data(track, frame_num))
+            file.flush()
+
         # draw bbox on screen
             color = colors[int(track.track_id) % len(colors)]
             color = [i * 255 for i in color]
@@ -264,12 +277,8 @@ def main(_argv):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        # Save CSV Data - TrackID , BBBOX Coordinates , Frame , Class
-        
-        for tracks in tracker:
-            file.write(format_data(track, frame_num))
-            file.flush()
 
+ 
 
     cv2.destroyAllWindows()
 
@@ -283,10 +292,3 @@ if __name__ == '__main__':
         pass
 
 
-def format_data(track, frame_num):
-    formatted_data = ''
-    formatted_data += str(track.track_id) + ';'
-    formatted_data += str(track.to_tlbr()) + ';'
-    formatted_data += str(track.class_name) + ';'
-    formatted_data += str(frame_num) + "\n"
-    return formatted_data
