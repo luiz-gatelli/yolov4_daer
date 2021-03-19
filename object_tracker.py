@@ -42,16 +42,15 @@ flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 flags.DEFINE_integer(
     'maxage', 90, 'frames before detection stops - deep sort parameter. default = 90')
-
+flags.DEFINE_float(
+    'min_frames', 3, 'frames before track is validated - deep sort parameter. default = 3')
 
 def main(_argv):
     # Definition of the parameters
+
     max_cosine_distance = 0.4
     nn_budget = None
     nms_max_overlap = 1.0
-
-    # dictionary to save data
-    tracked_objects = {}
 
     # initialize deep sort
     model_filename = 'model_data/mars-small128.pb'
@@ -60,7 +59,7 @@ def main(_argv):
     metric = nn_matching.NearestNeighborDistanceMetric(
         "cosine", max_cosine_distance, nn_budget)
     # initialize tracker
-    tracker = Tracker(metric, max_age=FLAGS.maxage)
+    tracker = Tracker(metric, max_age=FLAGS.maxage , min=FLAGS.min_frames)
 
     # load configuration for object detector
     config = ConfigProto()
@@ -69,6 +68,10 @@ def main(_argv):
     STRIDES, ANCHORS, NUM_CLASS, XYSCALE = utils.load_config(FLAGS)
     input_size = FLAGS.size
     video_path = FLAGS.video
+
+    head, tail = os.path.split(os.path.splitext(video_path)[0])
+    file = open(f"./tracks/{tail}_{FLAGS.maxage}_{FLAGS.min_frames}.bin", 'w+')
+
 
     # load tflite model if flag is set
     if FLAGS.framework == 'tflite':
@@ -231,15 +234,16 @@ def main(_argv):
                 len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
             cv2.putText(frame, class_name + "-" + str(track.track_id),
                         (int(bbox[0]), int(bbox[1]-10)), 0, 0.75, (255, 255, 255), 2)
-
-            if str(track.track_id) not in tracked_objects:
-                tracked_objects[str(track.track_id)] = {}
-                tracked_objects[str(track.track_id)]["initial position"] = (
-                    int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
-                tracked_objects[str(track.track_id)]["class"] = class_name
-            else:
-                tracked_objects[str(track.track_id)]["last position"] = (
-                    int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
+        #
+        #    if str(track.track_id) not in tracked_objects:
+        #        tracked_objects[str(track.track_id)] = {}
+        #        tracked_objects[str(track.track_id)]["initial position"] = (
+        #            int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
+        #        tracked_objects[str(track.track_id)]["class"] = class_name
+        #    else:
+        #        tracked_objects[str(track.track_id)]["last position"] = (
+        #            int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
+        
         # if enable info flag then print details about each track
             if FLAGS.info:
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(
@@ -259,12 +263,17 @@ def main(_argv):
             out.write(result)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        # Save CSV Data - TrackID , BBBOX Coordinates , Frame , Class
+        
+        for tracks in tracker:
+            file.write(format_data(track, frame_num))
+            file.flush()
+
+
     cv2.destroyAllWindows()
 
-    head, tail = os.path.split(os.path.splitext(video_path)[0])
-
-    with open(f"./tracks/tracked_data_{tail}_{FLAGS.maxage}.txt", 'w+') as tracked_file:
-        tracked_file.write(json.dumps(tracked_objects))
+    file.close()
 
 
 if __name__ == '__main__':
@@ -272,3 +281,12 @@ if __name__ == '__main__':
         app.run(main)
     except SystemExit:
         pass
+
+
+def format_data(track, frame_num):
+    formatted_data = ''
+    formatted_data += str(track.track_id) + ';'
+    formatted_data += str(track.to_tlbr()) + ';'
+    formatted_data += str(track.class_name) + ';'
+    formatted_data += str(frame_num) + "\n"
+    return formatted_data
