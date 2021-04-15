@@ -44,7 +44,8 @@ flags.DEFINE_integer(
     'maxage', 90, 'frames before detection stops - deep sort parameter. default = 90')
 flags.DEFINE_integer(
     'min_frames', 3, 'frames before track is validated - deep sort parameter. default = 3')
-
+flags.DEFINE_string('deepsortmodel', "mars-small128",
+                    'model filename')
 
 def format_data(track_id, bbox, class_name, frame_num):
     formatted_data = ''
@@ -62,7 +63,7 @@ def main(_argv):
     nms_max_overlap = 1.0
 
     # initialize deep sort
-    model_filename = 'model_data/mars-small128.pb'
+    model_filename = f'model_data/{FLAGS.deepsortmodel}.pb'
     encoder = gdet.create_box_encoder(model_filename, batch_size=1)
     # calculate cosine distance metric
     metric = nn_matching.NearestNeighborDistanceMetric(
@@ -79,7 +80,7 @@ def main(_argv):
     video_path = FLAGS.video
 
     head, tail = os.path.split(os.path.splitext(video_path)[0])
-    file = open(f"./tracks/{tail}_{FLAGS.maxage}_{FLAGS.min_frames}.bin", 'w+')
+    file = open(f"./tracks/{tail}_{FLAGS.maxage}_{FLAGS.min_frames}.csv", 'w+')
 
 
     # load tflite model if flag is set
