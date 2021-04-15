@@ -80,7 +80,8 @@ def main(_argv):
     video_path = FLAGS.video
 
     head, tail = os.path.split(os.path.splitext(video_path)[0])
-    file = open(f"./tracks/{tail}_{FLAGS.maxage}_{FLAGS.min_frames}.csv", 'w+')
+    file = open(
+        f"./tracks/{tail}_{FLAGS.maxage}_{FLAGS.min_frames}_{FLAGS.deepsortmodel}.csv", 'w+')
 
 
     # load tflite model if flag is set
